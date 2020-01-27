@@ -1,0 +1,104 @@
+<html>
+<head>
+  <title>Sequence Polisher</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+</head>
+<body class="grey darken-2">
+  <div class="container">
+    <div class="row center">
+      <h1 class="header white-text">Sentence Polisher</h1>
+      <h4 class="light grey-text lighten-3">A sentence polisher using deep learning</h4>
+    </div>
+  </div>
+  <div class="conteiner center">
+    <div class="row">
+      <form class="col s8 push-s2">
+        <div class="input-field">
+          <input id="text" type="text" class="white-text">
+          <label for="text">input text</label>
+          <button class="btn waves-effect waves-light indigo darken-4" type="submit" id="sub" name="action">calculate</button>
+        </div>
+      </form>
+    </div>
+    <div id="stage"></div>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r79/three.min.js"></script>
+  <script>
+    (function(){
+      var scene, sphereEarth;
+      var camera, ambient;
+      var renderer;
+      var width = window.innerWidth;
+      var height = 600;
+      var mouse_start = new THREE.Vector2();
+      var mouse = new THREE.Vector2();
+      var dragging = false;
+
+      scene = new THREE.Scene();
+      new THREE.TextureLoader().load('map.jpg',(texture)=>{
+        createEarth(texture); renderer.render(scene, camera);
+      });
+      function createEarth(texture) {
+        sphereEarth = new THREE.Mesh(  
+          new THREE.SphereGeometry(105, 32, 32),     
+          new THREE.MeshLambertMaterial({map: texture})
+          );
+        sphereEarth.position.set(0, 0, 0);
+        sphereEarth.rotation.y = -1.5
+        scene.add(sphereEarth);
+      };
+      ambient = new THREE.AmbientLight(0xffffff);
+      scene.add(ambient);
+      camera = new THREE.PerspectiveCamera(38, width / height, 1, 1000);
+      camera.position.set(10, 0, 350);
+      camera.lookAt(scene.position);
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(width, height);
+      renderer.setClearColor(0x616161);
+      document.getElementById('stage').appendChild(renderer.domElement);
+
+      renderer.domElement.addEventListener('mousedown',onDocumentMouseDown,false);
+      renderer.domElement.addEventListener('mousemove',onDocumentMouseMove,false);
+      renderer.domElement.addEventListener('mouseup',onDocumentMouseUp,false);
+
+      function onDocumentMouseDown( event ) {
+        event.preventDefault();
+        dragging = true;
+        mouse_start.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse_start.y = -(event.clientY / window.innerHeight) * 2 + 1;
+      }
+
+      function onDocumentMouseMove( event ) {
+        event.preventDefault();
+        if(dragging){
+          mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+          mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+          sphereEarth.rotation.y += 0.2*(mouse.x - mouse_start.x)
+          sphereEarth.rotation.x -= 0.2*(mouse.y - mouse_start.y)
+          renderer.render(scene, camera);
+        }
+      }
+
+      function onDocumentMouseUp( event ) {
+        event.preventDefault();
+        dragging = false;
+      }
+
+      function rotate(cord){
+        sphereEarth.rotation.y = 0.0
+        sphereEarth.rotation.x = 0.0
+        renderer.render(scene, camera);
+      }
+
+      const sub = document.getElementById('sub');
+      sub.addEventListener("click", function(e){
+        var text = document.getElementById('text');
+        e.preventDefault();
+        fetch('?'+text).then(res=>res.json()).then(res=>rotate(res))
+        console.log(text.value)
+      })
+    })();
+  </script>
+</body>
+</html>
