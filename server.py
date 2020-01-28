@@ -10,19 +10,23 @@ import torch
 PORT = 7604
 
 BOS, EOS, UNK = 0,1,2
-device = torch.device("cuda")
+if torch.cuda.is_available():
+    device = torch.device("cuda")
+else: device = torch.device("cpu")
 def transform(batchData):
     return torch.tensor([[char2id(c) for c in data]+[EOS] for data in batchData]).to(device)
-class models:
+class stylemodel:
     def __init__(self):
         print('model loading...')
-        self.model = StyleDisperser(weights=None, method="GRU", input_size=24498, hidden_size=3, output_size=3, device=device, margin=0.2)
+        self.model = StyleDisperser(weights=None, method="GRU", input_size=24498, hidden_size=128, output_size=3, device=device, margin=0.75)
+        self.model.load_state_dict(torch.load("interface/7_0.6073_0.9461.weight", map_location=torch.device('cpu')))
         self.model.to(device)
+        self.model.eval()
     def __call__(self, text):
         with torch.no_grad():
-            return self.model.inference(transform([text])).cpu()
+            return self.model.inference(transform(text)).cpu()
 
-model = models()
+model = stylemodel()
 
 class MyHandler(BaseHTTPRequestHandler):
     def do_POST(self):
@@ -38,7 +42,7 @@ class MyHandler(BaseHTTPRequestHandler):
                 self.send_response(404)
             self.end_headers()
             self.wfile.write(bytes(file_to_open, 'utf-8'))
-        else:
+        elif self.path != '/favicon.ico':
             self.make_data()
     def make_data(self):
         parsed = urlparse(self.path)

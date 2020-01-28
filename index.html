@@ -89,14 +89,15 @@
       }
 
       function rotate(coord){
-        console.log(coord)
-        if(coord[0] > coord[1])
+        console.log(coord[0],coord[1],coord[2])
+        if(Math.abs(coord[0]) > Math.abs(coord[1]))
           sphereEarth.rotation.y = Math.atan(coord[1]/coord[0])
-        else if(coord[0] < coord[1])
-          sphereEarth.rotation.y = Math.atan(coord[0]/coord[1])+Math.Pi/4
+        else if(Math.abs(coord[0]) < Math.abs(coord[1]))
+          sphereEarth.rotation.y = Math.atan(coord[0]/coord[1])+Math.PI/4
         else if(coord[0] == coord[1] == 0)
           sphereEarth.rotation.y = Math.atan(1)
         sphereEarth.rotation.x = Math.asin(coord[2])
+        console.log(sphereEarth.rotation.x,sphereEarth.rotation.y)
         renderer.render(scene, camera);
       }
 
